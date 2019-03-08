@@ -3,8 +3,8 @@
 export DOCKER_HOST="localhost:2376"
 #export
 
-#echo ${DOCKER_SWARM_KEY} | sed -e 's/\(KEY-----\)\s/\1\n/g; s/\s\(-----END\)/\n\1/g' | sed -e '2s/\s\+/\n/g' > key.pem
-echo ${DOCKER_SWARM_KEY} > key.pem
+echo ${DOCKER_SWARM_KEY} | sed -e 's/\(KEY-----\)\s/\1\n/g; s/\s\(-----END\)/\n\1/g' | sed -e '2s/\s\+/\n/g' > key.pem
+#echo ${DOCKER_SWARM_KEY} > key.pem
 chmod 600 key.pem
 
 screen -S \
