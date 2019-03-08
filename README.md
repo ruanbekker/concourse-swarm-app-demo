@@ -1,6 +1,25 @@
 # concourse-swarm-app-demo
 Concourse with Docker Swarm Demo
 
+## Required Configs:
+
+1. local variables.yml
+
+```
+slack_notification_url: https://hooks.slack.com/services/xx/yy/zzzz
+docker_swarm_staging_host: staging.my.domain.com
+docker_swarm_prod_host: prod.my.domain.com
+docker_hub_user: youruser
+docker_hub_password: yourpasswd
+aws_access_key_id: foo
+aws_secret_access_key: bar
+aws_region: eu-west-1
+docker_swarm_key: |-
+        -----begin pvt key-----
+        ZZ this should always remain local and on a safe place never in version control ZZ
+        -----end pvt key-------
+```
+
 ## Instructions
 
 Create 2 branches for version files: `version-staging` and `version-prod`
