@@ -3,11 +3,13 @@ version: "3.4"
 services:
   whoami:
     image: rbekker87/golang-whoami:latest
+    ports:
+      - 80:80
     networks:
       - web_net
     deploy:
       mode: replicated
-      replicas: 1
+      replicas: 10
 
 networks:
   web_net: {}

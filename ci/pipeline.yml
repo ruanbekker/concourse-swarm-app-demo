@@ -1,1 +1,194 @@
+resources:
+  - name: main-repo
+    type: git
+    source:
+      uri: git@github.com:ruanbekker/concourse-swarm-app-demo.git
+      branch: master
+      private_key: ((github_private_key))
+
+  - name: main-repo-staging
+    type: git
+    source:
+      uri: git@github.com:ruanbekker/concourse-swarm-app-demo.git
+      branch: master
+      private_key: ((github_private_key))
+      paths:
+        - config/staging/*
+
+  - name: main-repo-prod
+    type: git
+    source:
+      uri: git@github.com:ruanbekker/concourse-swarm-app-demo.git
+      branch: master
+      private_key: ((github_private_key))
+      paths:
+        - config/prod/*
+
+  - name: slack-alert
+    type: slack-notification
+    source:
+      url: ((slack_notification_url))
+
+  - name: version-staging
+    type: semver
+    source:
+      driver: git
+      uri: git@github.com:ruanbekker/concourse-swarm-app-demo.git
+      private_key: ((github_private_key))
+      file: version-staging
+      branch: version-staging
+
+  - name: version-prod
+    type: semver
+    source:
+      driver: git
+      uri: git@github.com:ruanbekker/concourse-swarm-app-demo.git
+      private_key: ((github_private_key))
+      file: version-prod
+      branch: version-prod
+
+resource_types:
+  - name: slack-notification
+    type: docker-image
+    source:
+      repository: cfcommunity/slack-notification-resource
+      tag: v1.3.0
+
+jobs:
+  - name: bump-staging-version
+    plan:
+    - get: main-repo-staging
+      trigger: true
+    - get: version-staging
+    - put: version-staging
+      params:
+        bump: major
+
+  - name: bump-prod-version
+    plan:
+    - get: main-repo-prod
+      trigger: true
+    - get: version-prod
+    - put: version-prod
+      params:
+        bump: major
+
+  - name: deploy-staging
+    plan:
+    - get: main-repo-staging
+    - get: main-repo
+    - get: version-staging
+      passed:
+      - bump-staging-version
+      trigger: true
+    - task: deploy-staging
+      params:
+        DOCKER_SWARM_HOSTNAME: ((docker_swarm_staging_host))
+        DOCKER_SWARM_KEY: ((docker_swarm_key))
+        DOCKER_HUB_USER: ((docker_hub_user))
+        DOCKER_HUB_PASSWORD: ((docker_hub_password))
+        SERVICE_NAME: app-staging
+        SWARM: staging
+        ENVIRONMENT: staging
+        AWS_ACCESS_KEY_ID: ((aws_access_key_id))
+        AWS_SECRET_ACCESS_KEY: ((aws_secret_access_key))
+        AWS_DEFAULT_REGION: ((aws_region))
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: rbekker87/build-tools
+            tag: latest
+            username: ((docker_hub_user))
+            password: ((docker_hub_password))
+        inputs:
+        - name: main-repo-staging
+        - name: main-repo
+        - name: version-staging
+        run:
+          path: /bin/sh
+          args:
+            - -c
+            - |
+              ./main-repo/ci/scripts/deploy.sh
+      on_failure:
+        put: slack-alert
+        params:
+          channel: '#system_events'
+          username: 'concourse'
+          icon_emoji: ':concourse:'
+          silent: true
+          text: | 
+            *$BUILD_PIPELINE_NAME/$BUILD_JOB_NAME* ($BUILD_NAME) FAILED :rage: - TestApp Deploy to staging-swarm failed
+            http://ci.example.local/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+      on_success:
+        put: slack-alert
+        params:
+          channel: '#system_events'
+          username: 'concourse'
+          icon_emoji: ':concourse:'
+          silent: true
+          text: | 
+            *$BUILD_PIPELINE_NAME/$BUILD_JOB_NAME* ($BUILD_NAME) SUCCESS :aww_yeah: - TestApp Deploy to staging-swarm succeeded
+            http://ci.example.local/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+
+  - name: deploy-prod
+    plan:
+    - get: main-repo-prod
+    - get: main-repo
+    - get: version-prod
+      passed:
+      - bump-prod-version
+    - task: deploy-prod
+      params:
+        DOCKER_SWARM_HOSTNAME: ((docker_swarm_prod_host))
+        DOCKER_SWARM_KEY: ((docker_swarm_key))
+        DOCKER_HUB_USER: ((docker_hub_user))
+        DOCKER_HUB_PASSWORD: ((docker_hub_password))
+        SERVICE_NAME: app-prod
+        SWARM: prod
+        ENVIRONMENT: production
+        AWS_ACCESS_KEY_ID: ((aws_access_key_id))
+        AWS_SECRET_ACCESS_KEY: ((aws_secret_access_key))
+        AWS_DEFAULT_REGION: ((aws_region))
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: rbekker87/build-tools
+            tag: latest
+            username: ((docker_hub_user))
+            password: ((docker_hub_password))
+        inputs:
+        - name: main-repo-prod
+        - name: main-repo
+        - name: version-prod
+        run:
+          path: /bin/sh
+          args:
+            - -c
+            - |
+              ./main-repo/ci/scripts/deploy.sh
+      on_failure:
+        put: slack-alert
+        params:
+          channel: '#system_events'
+          username: 'concourse'
+          icon_emoji: ':concourse:'
+          silent: true
+          text: | 
+            *$BUILD_PIPELINE_NAME/$BUILD_JOB_NAME* ($BUILD_NAME) FAILED :rage: - TestApp Deploy to prod-swarm failed
+            http://ci.example.local/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+      on_success:
+        put: slack-alert
+        params:
+          channel: '#system_events'
+          username: 'concourse'
+          icon_emoji: ':concourse:'
+          silent: true
+          text: | 
+            *$BUILD_PIPELINE_NAME/$BUILD_JOB_NAME* ($BUILD_NAME) SUCCESS :aww_yeah: - TestApp Deploy to prod-swarm succeeded
+            http://ci.example.local/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 

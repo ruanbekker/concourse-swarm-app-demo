@@ -1,9 +1,10 @@
 #!/usr/bin/env sh
 
 export DOCKER_HOST="localhost:2376"
-export
+#export
 
-echo ${DOCKER_SWARM_KEY} | sed -e 's/\(KEY-----\)\s/\1\n/g; s/\s\(-----END\)/\n\1/g' | sed -e '2s/\s\+/\n/g' > key.pem
+#echo ${DOCKER_SWARM_KEY} | sed -e 's/\(KEY-----\)\s/\1\n/g; s/\s\(-----END\)/\n\1/g' | sed -e '2s/\s\+/\n/g' > key.pem
+echo ${DOCKER_SWARM_KEY} > key.pem
 chmod 600 key.pem
 
 screen -S \
@@ -12,7 +13,7 @@ screen -S \
 
 sleep 5
 docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_PASSWORD
-docker stack deploy --prune -c ./main-repo/ci/docker-compose.yml $SERVICE_NAME --with-registry-auth
+docker stack deploy --prune -c ./main-repo/ci/docker-compose.${ENVIRONMENT}.yml $SERVICE_NAME --with-registry-auth
 
 if [ $? != "0" ]
   then
