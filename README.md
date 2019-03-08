@@ -55,3 +55,9 @@ Deployed automatically to staging, prod is a manual trigger:
 
 ![](https://user-images.githubusercontent.com/567298/54060991-8e3bd180-4207-11e9-9726-2c01ca10d24a.png)
 
+
+## Resources:
+
+- https://github.com/cloudfoundry-community/slack-notification-resource
+- https://github.com/pivotalservices/concourse-pipeline-samples/tree/master/concourse-pipeline-patterns/gated-pipelines
+- https://github.com/concourse/pipelines/blob/master/examples/wing-flex/semver-example.yml
