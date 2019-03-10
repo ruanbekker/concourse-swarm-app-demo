@@ -1,10 +1,6 @@
 #!/usr/bin/env sh
 
 export DOCKER_HOST="localhost:2376"
-echo "export"
-export
-echo "env"
-env
 
 echo ${DOCKER_SWARM_KEY} | sed -e 's/\(KEY-----\)\s/\1\n/g; s/\s\(-----END\)/\n\1/g' | sed -e '2s/\s\+/\n/g' > key.pem
 #echo ${DOCKER_SWARM_KEY} > key.pem
