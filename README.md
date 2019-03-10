@@ -62,4 +62,7 @@ Deployed automatically to staging, prod is a manual trigger:
 - https://github.com/pivotalservices/concourse-pipeline-samples/tree/master/concourse-pipeline-patterns/gated-pipelines
 - https://github.com/concourse/pipelines/blob/master/examples/wing-flex/semver-example.yml
 - https://github.com/jchesterpivotal/concourse-with-minio-deployment/blob/master/pipelines/minio-pipeline.yml
+- https://github.com/concourse/pipelines/blob/master/examples/wing-flex/semver-example.yml
 
+- http://krishicks.com/post/2017/10/06/migrating-concourse-resources-to-s3/
+- https://blog.scottlogic.com/2016/06/20/declarative-ci-cd-with-concourse.html
